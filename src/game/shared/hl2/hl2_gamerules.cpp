@@ -1392,6 +1392,7 @@ ConVar  alyx_darkness_force( "alyx_darkness_force", "0", FCVAR_CHEAT | FCVAR_REP
  	bool CHalfLife2::AllowDamage( CBaseEntity *pVictim, const CTakeDamageInfo &info )
   	{
 #ifndef CLIENT_DLL
+		bool PhysCannonAccountableForObject(CBaseCombatWeapon * pPhysCannon, CBaseEntity * pObject);
 	if( (info.GetDamageType() & DMG_CRUSH) && info.GetInflictor() && pVictim->MyNPCPointer() )
 	{
 		if( pVictim->MyNPCPointer()->IsPlayerAlly() )

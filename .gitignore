@@ -1,5 +1,18 @@
 # Files to ignore when considering what GIT should commit.
 
+# Ignore game materials, models, sounds
+game/mod_c17vr/materials/
+game/mod_c17vr/materialsrc/
+game/mod_c17vr/models/
+game/mod_c17vr/modelsrc/
+game/mod_c17vr/sounds/
+game/mod_c17vr/sound_workshop/
+game/mod_c17vr/maps/
+game/mod_c17vr/mapsrc/
+game/mod_c17vr/downloadlists/
+game/platform/
+
+
 # Visual Studio 
 *.suo
 *.user

@@ -14,8 +14,8 @@
 #include "physics_saverestore.h"
 #include "world.h"
 
-#ifdef HL2MP
-#include "hl2mp_gamerules.h"
+#ifdef C17VR
+#include "c17vr_gamerules.h"
 #endif
 
 #ifdef TF_DLL
@@ -105,7 +105,7 @@ BEGIN_DATADESC( CItem )
 	DEFINE_THINKFUNC( Materialize ),
 	DEFINE_THINKFUNC( ComeToRest ),
 
-#if defined( HL2MP ) || defined( TF_DLL )
+#if defined( C17VR ) || defined( TF_DLL )
 	DEFINE_FIELD( m_flNextResetCheckTime, FIELD_TIME ),
 	DEFINE_THINKFUNC( FallThink ),
 #endif
@@ -209,7 +209,7 @@ void CItem::Spawn( void )
 	}
 #endif //CLIENT_DLL
 
-#if defined( HL2MP ) || defined( TF_DLL )
+#if defined( C17VR ) || defined( TF_DLL )
 	SetThink( &CItem::FallThink );
 	SetNextThink( gpGlobals->curtime + 0.1f );
 #endif
@@ -279,7 +279,7 @@ void CItem::ComeToRest( void )
 	}
 }
 
-#if defined( HL2MP ) || defined( TF_DLL )
+#if defined( C17VR ) || defined( TF_DLL )
 
 //-----------------------------------------------------------------------------
 // Purpose: Items that have just spawned run this think to catch them when 
@@ -291,7 +291,7 @@ void CItem::FallThink ( void )
 {
 	SetNextThink( gpGlobals->curtime + 0.1f );
 
-#if defined( HL2MP )
+#if defined( C17VR )
 	bool shouldMaterialize = false;
 	IPhysicsObject *pPhysics = VPhysicsGetObject();
 	if ( pPhysics )
@@ -310,7 +310,7 @@ void CItem::FallThink ( void )
 		m_vOriginalSpawnOrigin = GetAbsOrigin();
 		m_vOriginalSpawnAngles = GetAbsAngles();
 
-		HL2MPRules()->AddLevelDesignerPlacedObject( this );
+		C17VRRules()->AddLevelDesignerPlacedObject( this );
 	}
 #endif // HL2MP
 
@@ -485,8 +485,8 @@ void CItem::ItemTouch( CBaseEntity *pOther )
 		{
 			UTIL_Remove( this );
 
-#ifdef HL2MP
-			HL2MPRules()->RemoveLevelDesignerPlacedObject( this );
+#ifdef C17VR
+			C17VRRules()->RemoveLevelDesignerPlacedObject( this );
 #endif
 		}
 	}
@@ -529,7 +529,7 @@ void CItem::Materialize( void )
 	{
 		// changing from invisible state to visible.
 
-#ifdef HL2MP
+#ifdef C17VR
 		EmitSound( "AlyxEmp.Charge" );
 #else
 		EmitSound( "Item.Materialize" );

@@ -27,8 +27,8 @@
 #include "iservervehicle.h"
 #include "func_break.h"
 
-#ifdef HL2MP
-	#include "hl2mp_gamerules.h"
+#ifdef C17VR
+	#include "c17vr_gamerules.h"
 #endif
 
 // memdbgon must be the last include file in a .cpp file!!!
@@ -604,7 +604,7 @@ void CBaseCombatWeapon::Materialize( void )
 	if ( IsEffectActive( EF_NODRAW ) )
 	{
 		// changing from invisible state to visible.
-#ifdef HL2MP
+#ifdef C17VR
 		EmitSound( "AlyxEmp.Charge" );
 #else
 		EmitSound( "BaseCombatWeapon.WeaponMaterialize" );
@@ -613,13 +613,13 @@ void CBaseCombatWeapon::Materialize( void )
 		RemoveEffects( EF_NODRAW );
 		DoMuzzleFlash();
 	}
-#ifdef HL2MP
+#ifdef C17VR
 	if ( HasSpawnFlags( SF_NORESPAWN ) == false )
 	{
 		VPhysicsInitNormal( SOLID_BBOX, GetSolidFlags() | FSOLID_TRIGGER, false );
 		SetMoveType( MOVETYPE_VPHYSICS );
 
-		HL2MPRules()->AddLevelDesignerPlacedObject( this );
+		C17VRRules()->AddLevelDesignerPlacedObject( this );
 	}
 #else
 	SetSolid( SOLID_BBOX );

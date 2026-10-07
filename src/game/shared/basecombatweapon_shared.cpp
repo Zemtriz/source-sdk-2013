@@ -32,8 +32,8 @@
 #include "fmtstr.h"
 #include "gameweaponmanager.h"
 
-#ifdef HL2MP
-	#include "hl2mp_gamerules.h"
+#ifdef C17VR
+	#include "c17vr_gamerules.h"
 #endif
 
 #endif
@@ -770,8 +770,8 @@ void CBaseCombatWeapon::OnPickedUp( CBaseCombatCharacter *pNewOwner )
 		m_OnNPCPickup.FireOutput(pNewOwner, this);
 	}
 
-#ifdef HL2MP
-	HL2MPRules()->RemoveLevelDesignerPlacedObject( this );
+#ifdef C17VR
+	C17VRRules()->RemoveLevelDesignerPlacedObject( this );
 #endif
 
 	// Someone picked me up, so make it so that I can't be removed.
@@ -1025,7 +1025,7 @@ void CBaseCombatWeapon::Equip( CBaseCombatCharacter *pOwner )
 void CBaseCombatWeapon::SetActivity( Activity act, float duration ) 
 { 
 	//Adrian: Oh man...
-#if !defined( CLIENT_DLL ) && (defined( HL2MP ) || defined( PORTAL ))
+#if !defined( CLIENT_DLL ) && (defined( C17VR ) || defined( PORTAL ))
 	SetModel( GetWorldModel() );
 #endif
 	
@@ -1036,7 +1036,7 @@ void CBaseCombatWeapon::SetActivity( Activity act, float duration )
 		sequence = SelectWeightedSequence( ACT_VM_IDLE );
 
 	//Adrian: Oh man again...
-#if !defined( CLIENT_DLL ) && (defined( HL2MP ) || defined( PORTAL ))
+#if !defined( CLIENT_DLL ) && (defined( C17VR ) || defined( PORTAL ))
 	SetModel( GetViewModel() );
 #endif
 
