@@ -7,6 +7,8 @@
 #if defined( _WIN32 )
 #include <windows.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <assert.h>
 #include <direct.h>
 #endif
@@ -428,6 +430,81 @@ static void HandleRelaunching()
 #endif
 }
 
+// Older SDK targets leave this out of the headers; it works on Windows 8+ and on 7 with KB2533623.
+#ifndef LOAD_LIBRARY_SEARCH_SYSTEM32
+#define LOAD_LIBRARY_SEARCH_SYSTEM32 0x00000800
+#endif
+
+static bool HasCommandLineArg( const char *pszArg )
+{
+	for ( int i = 1; i < __argc; i++ )
+	{
+		if ( !_stricmp( __argv[i], pszArg ) )
+			return true;
+	}
+
+	return false;
+}
+
+//-----------------------------------------------------------------------------
+// Purpose: Load the DXVK d3d9.dll shipped in <root>\bin\x64\dxvk\ before the
+//			engine does. shaderapidx9 is a closed binary that imports d3d9.dll
+//			by name, and the loader hands back an already loaded module with
+//			that name instead of searching System32, so the engine renders
+//			D3D9 -> Vulkan without any engine changes.
+//			Native D3D9 is used instead when -nodxvk is passed, the DLL is not
+//			there, or the machine has no Vulkan loader.
+//-----------------------------------------------------------------------------
+static void LoadBundledDXVK( const char *pRootDir )
+{
+	if ( HasCommandLineArg( "-nodxvk" ) )
+	{
+		OutputDebugStringA( "[C17VR] -nodxvk: using native Direct3D 9\n" );
+		return;
+	}
+
+	char szDXVKDir[MAX_PATH];
+	_snprintf( szDXVKDir, sizeof( szDXVKDir ), "%s\\" PLATFORM_BIN_DIR "\\dxvk", pRootDir );
+	szDXVKDir[sizeof( szDXVKDir ) - 1] = '\0';
+
+	char szD3D9[MAX_PATH];
+	_snprintf( szD3D9, sizeof( szD3D9 ), "%s\\d3d9.dll", szDXVKDir );
+	szD3D9[sizeof( szD3D9 ) - 1] = '\0';
+
+	if ( GetFileAttributesA( szD3D9 ) == INVALID_FILE_ATTRIBUTES )
+	{
+		OutputDebugStringA( "[C17VR] No bundled DXVK d3d9.dll: using native Direct3D 9\n" );
+		return;
+	}
+
+	// DXVK only fails at device creation when there is no Vulkan driver, which
+	// is too late to fall back, so check for the loader up front.
+	HMODULE hVulkan = LoadLibraryExA( "vulkan-1.dll", NULL, LOAD_LIBRARY_SEARCH_SYSTEM32 );
+	if ( !hVulkan )
+	{
+		OutputDebugStringA( "[C17VR] vulkan-1.dll not found: using native Direct3D 9\n" );
+		return;
+	}
+	FreeLibrary( hVulkan );
+
+	// Use the dxvk.conf shipped next to the DLL unless one was set explicitly.
+	char szConf[MAX_PATH];
+	_snprintf( szConf, sizeof( szConf ), "%s\\dxvk.conf", szDXVKDir );
+	szConf[sizeof( szConf ) - 1] = '\0';
+	if ( !GetEnvironmentVariableA( "DXVK_CONFIG_FILE", NULL, 0 ) && GetFileAttributesA( szConf ) != INVALID_FILE_ATTRIBUTES )
+	{
+		SetEnvironmentVariableA( "DXVK_CONFIG_FILE", szConf );
+	}
+
+	if ( !LoadLibraryExA( szD3D9, NULL, LOAD_WITH_ALTERED_SEARCH_PATH ) )
+	{
+		OutputDebugStringA( "[C17VR] Failed to load bundled DXVK d3d9.dll: using native Direct3D 9\n" );
+		return;
+	}
+
+	OutputDebugStringA( "[C17VR] Loaded bundled DXVK d3d9.dll\n" );
+}
+
 int APIENTRY WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )
 {
 	HandleRelaunching();
@@ -457,6 +534,9 @@ int APIENTRY WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
 	pBinaryGameDir = szGameInstallDir;
 
 	SetEnvironmentVariableA( "SDK_EXEC_DIR", szGameInstallDir );
+
+	// Must happen before launcher.dll pulls in the engine and shaderapidx9.
+	LoadBundledDXVK( pRootDir );
 
 #define LAUNCHER_DLL_PATH	"%s\\" PLATFORM_BIN_DIR "\\launcher.dll"
 #define LAUNCHER_PATH		"%s\\" PLATFORM_BIN_DIR
